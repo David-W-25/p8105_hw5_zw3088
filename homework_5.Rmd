@@ -12,7 +12,7 @@ library(tidyverse)
 
 ## Problem 1
 
-Suppose you put 𝑛 people in a room, and want to know the probability that at least two people share a birthday. For simplicity, we’ll assume there are no leap years (i.e. there are only 365 days) and that birthdays are uniformly distributed over the year (which is actually not the case).
+Suppose you put n people in a room, and want to know the probability that at least two people share a birthday. For simplicity, we’ll assume there are no leap years and that birthdays are uniformly distributed over the year.
 Write a function that, for a fixed group size, randomly draws “birthdays” for each person; checks whether there are duplicate birthdays in the group; and returns TRUE or FALSE based on the result.
 
 ```{r}
@@ -81,7 +81,7 @@ norm_sim =
 
 ```
 
-Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of 𝜇 on the x axis.
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of mu on the x axis.
 
 ```{r}
 norm_sim |>
@@ -177,7 +177,9 @@ homicide |>
   filter(city_state == "Baltimore,MD") |>
   mutate(table = map2(unsolved, total, \(x, y) test(unsolved = x, total = y))) |>
   pull(table) |>
-  knitr::kable()
+  knitr::kable(
+    col.names = c("Estimate", "Lower limit of 95% CI", "Upper limit of 95% CI")
+  )
 ```
 
 Now for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. List columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
@@ -187,10 +189,19 @@ homicide =
   homicide |>
   group_by(city_state) |>
   summarise(table = map2(unsolved, total, \(x, y) test(unsolved = x, total = y))) |>
-  unnest(table)
+  unnest(table) |>
+  mutate(
+    estimate = round(estimate, 3),
+    conf.low = round(conf.low, 3),
+    conf.high = round(conf.high, 3),
+    CI = paste(conf.low, conf.high, sep = ",")
+  )
 
 homicide |>
-  knitr::kable()
+  select(-conf.low, -conf.high) |>
+  knitr::kable(
+    col.names = c("City, State", "Estimate", "95% CI")
+  )
 
 ```
 

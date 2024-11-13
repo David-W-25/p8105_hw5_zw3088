@@ -5,12 +5,11 @@ David
 
 ## Problem 1
 
-Suppose you put 𝑛 people in a room, and want to know the probability
+Suppose you put n people in a room, and want to know the probability
 that at least two people share a birthday. For simplicity, we’ll assume
-there are no leap years (i.e. there are only 365 days) and that
-birthdays are uniformly distributed over the year (which is actually not
-the case). Write a function that, for a fixed group size, randomly draws
-“birthdays” for each person; checks whether there are duplicate
+there are no leap years and that birthdays are uniformly distributed
+over the year. Write a function that, for a fixed group size, randomly
+draws “birthdays” for each person; checks whether there are duplicate
 birthdays in the group; and returns TRUE or FALSE based on the result.
 
 ``` r
@@ -85,7 +84,7 @@ norm_sim =
 ```
 
 Make a plot showing the proportion of times the null was rejected (the
-power of the test) on the y axis and the true value of 𝜇 on the x axis.
+power of the test) on the y axis and the true value of mu on the x axis.
 
 ``` r
 norm_sim |>
@@ -206,7 +205,9 @@ homicide |>
   filter(city_state == "Baltimore,MD") |>
   mutate(table = map2(unsolved, total, \(x, y) test(unsolved = x, total = y))) |>
   pull(table) |>
-  knitr::kable()
+  knitr::kable(
+    col.names = c("Estimate", "Lower limit of 95% CI", "Upper limit of 95% CI")
+  )
 ```
 
 <table class="kable_wrapper">
@@ -214,9 +215,9 @@ homicide |>
 <tr>
 <td>
 
-|  estimate |  conf.low | conf.high |
-|----------:|----------:|----------:|
-| 0.6455607 | 0.6275625 | 0.6631599 |
+|  Estimate | Lower limit of 95% CI | Upper limit of 95% CI |
+|----------:|----------------------:|----------------------:|
+| 0.6455607 |             0.6275625 |             0.6631599 |
 
 </td>
 </tr>
@@ -233,7 +234,13 @@ homicide =
   homicide |>
   group_by(city_state) |>
   summarise(table = map2(unsolved, total, \(x, y) test(unsolved = x, total = y))) |>
-  unnest(table)
+  unnest(table) |>
+  mutate(
+    estimate = round(estimate, 3),
+    conf.low = round(conf.low, 3),
+    conf.high = round(conf.high, 3),
+    CI = paste(conf.low, conf.high, sep = ",")
+  )
 ```
 
     ## Warning: There was 1 warning in `summarise()`.
@@ -245,62 +252,65 @@ homicide =
 
 ``` r
 homicide |>
-  knitr::kable()
+  select(-conf.low, -conf.high) |>
+  knitr::kable(
+    col.names = c("City, State", "Estimate", "95% CI")
+  )
 ```
 
-| city_state        |  estimate |  conf.low | conf.high |
-|:------------------|----------:|----------:|----------:|
-| Albuquerque,NM    | 0.3862434 | 0.3372604 | 0.4375766 |
-| Atlanta,GA        | 0.3833505 | 0.3528119 | 0.4148219 |
-| Baltimore,MD      | 0.6455607 | 0.6275625 | 0.6631599 |
-| Baton Rouge,LA    | 0.4622642 | 0.4141987 | 0.5110240 |
-| Birmingham,AL     | 0.4337500 | 0.3991889 | 0.4689557 |
-| Boston,MA         | 0.5048860 | 0.4646219 | 0.5450881 |
-| Buffalo,NY        | 0.6122841 | 0.5687990 | 0.6540879 |
-| Charlotte,NC      | 0.2998544 | 0.2660820 | 0.3358999 |
-| Chicago,IL        | 0.7358627 | 0.7239959 | 0.7473998 |
-| Cincinnati,OH     | 0.4452450 | 0.4079606 | 0.4831439 |
-| Columbus,OH       | 0.5304428 | 0.5002167 | 0.5604506 |
-| Dallas,TX         | 0.4811742 | 0.4561942 | 0.5062475 |
-| Denver,CO         | 0.5416667 | 0.4846098 | 0.5976807 |
-| Detroit,MI        | 0.5883287 | 0.5687903 | 0.6075953 |
-| Durham,NC         | 0.3659420 | 0.3095874 | 0.4260936 |
-| Fort Worth,TX     | 0.4644809 | 0.4222542 | 0.5072119 |
-| Fresno,CA         | 0.3470226 | 0.3051013 | 0.3913963 |
-| Houston,TX        | 0.5074779 | 0.4892447 | 0.5256914 |
-| Indianapolis,IN   | 0.4493192 | 0.4223156 | 0.4766207 |
-| Jacksonville,FL   | 0.5111301 | 0.4820460 | 0.5401402 |
-| Kansas City,MO    | 0.4084034 | 0.3803996 | 0.4370054 |
-| Las Vegas,NV      | 0.4141926 | 0.3881284 | 0.4407395 |
-| Long Beach,CA     | 0.4126984 | 0.3629026 | 0.4642973 |
-| Los Angeles,CA    | 0.4900310 | 0.4692208 | 0.5108754 |
-| Louisville,KY     | 0.4531250 | 0.4120609 | 0.4948235 |
-| Memphis,TN        | 0.3190225 | 0.2957047 | 0.3432691 |
-| Miami,FL          | 0.6048387 | 0.5685783 | 0.6400015 |
-| Milwaukee,wI      | 0.3614350 | 0.3333172 | 0.3905194 |
-| Minneapolis,MN    | 0.5109290 | 0.4585150 | 0.5631099 |
-| Nashville,TN      | 0.3624511 | 0.3285592 | 0.3977401 |
-| New Orleans,LA    | 0.6485356 | 0.6231048 | 0.6731615 |
-| New York,NY       | 0.3875598 | 0.3494421 | 0.4270755 |
-| Oakland,CA        | 0.5364308 | 0.5040588 | 0.5685037 |
-| Oklahoma City,OK  | 0.4851190 | 0.4467861 | 0.5236245 |
-| Omaha,NE          | 0.4132029 | 0.3653146 | 0.4627477 |
-| Philadelphia,PA   | 0.4478103 | 0.4300380 | 0.4657157 |
-| Phoenix,AZ        | 0.5514223 | 0.5184825 | 0.5839244 |
-| Pittsburgh,PA     | 0.5340729 | 0.4942706 | 0.5734545 |
-| Richmond,VA       | 0.2634033 | 0.2228571 | 0.3082658 |
-| Sacramento,CA     | 0.3696809 | 0.3211559 | 0.4209131 |
-| San Antonio,TX    | 0.4285714 | 0.3947772 | 0.4630331 |
-| San Bernardino,CA | 0.6181818 | 0.5576628 | 0.6753422 |
-| San Diego,CA      | 0.3796095 | 0.3354259 | 0.4258315 |
-| San Francisco,CA  | 0.5067873 | 0.4680516 | 0.5454433 |
-| Savannah,GA       | 0.4674797 | 0.4041252 | 0.5318665 |
-| St. Louis,MO      | 0.5396541 | 0.5154369 | 0.5636879 |
-| Stockton,CA       | 0.5990991 | 0.5517145 | 0.6447418 |
-| Tampa,FL          | 0.4567308 | 0.3881009 | 0.5269851 |
-| Tulsa,AL          | 0.0000000 | 0.0000000 | 0.9453792 |
-| Tulsa,OK          | 0.3310463 | 0.2932349 | 0.3711192 |
-| Washington,DC     | 0.4379182 | 0.4112495 | 0.4649455 |
+| City, State       | Estimate | 95% CI      |
+|:------------------|---------:|:------------|
+| Albuquerque,NM    |    0.386 | 0.337,0.438 |
+| Atlanta,GA        |    0.383 | 0.353,0.415 |
+| Baltimore,MD      |    0.646 | 0.628,0.663 |
+| Baton Rouge,LA    |    0.462 | 0.414,0.511 |
+| Birmingham,AL     |    0.434 | 0.399,0.469 |
+| Boston,MA         |    0.505 | 0.465,0.545 |
+| Buffalo,NY        |    0.612 | 0.569,0.654 |
+| Charlotte,NC      |    0.300 | 0.266,0.336 |
+| Chicago,IL        |    0.736 | 0.724,0.747 |
+| Cincinnati,OH     |    0.445 | 0.408,0.483 |
+| Columbus,OH       |    0.530 | 0.5,0.56    |
+| Dallas,TX         |    0.481 | 0.456,0.506 |
+| Denver,CO         |    0.542 | 0.485,0.598 |
+| Detroit,MI        |    0.588 | 0.569,0.608 |
+| Durham,NC         |    0.366 | 0.31,0.426  |
+| Fort Worth,TX     |    0.464 | 0.422,0.507 |
+| Fresno,CA         |    0.347 | 0.305,0.391 |
+| Houston,TX        |    0.507 | 0.489,0.526 |
+| Indianapolis,IN   |    0.449 | 0.422,0.477 |
+| Jacksonville,FL   |    0.511 | 0.482,0.54  |
+| Kansas City,MO    |    0.408 | 0.38,0.437  |
+| Las Vegas,NV      |    0.414 | 0.388,0.441 |
+| Long Beach,CA     |    0.413 | 0.363,0.464 |
+| Los Angeles,CA    |    0.490 | 0.469,0.511 |
+| Louisville,KY     |    0.453 | 0.412,0.495 |
+| Memphis,TN        |    0.319 | 0.296,0.343 |
+| Miami,FL          |    0.605 | 0.569,0.64  |
+| Milwaukee,wI      |    0.361 | 0.333,0.391 |
+| Minneapolis,MN    |    0.511 | 0.459,0.563 |
+| Nashville,TN      |    0.362 | 0.329,0.398 |
+| New Orleans,LA    |    0.649 | 0.623,0.673 |
+| New York,NY       |    0.388 | 0.349,0.427 |
+| Oakland,CA        |    0.536 | 0.504,0.569 |
+| Oklahoma City,OK  |    0.485 | 0.447,0.524 |
+| Omaha,NE          |    0.413 | 0.365,0.463 |
+| Philadelphia,PA   |    0.448 | 0.43,0.466  |
+| Phoenix,AZ        |    0.551 | 0.518,0.584 |
+| Pittsburgh,PA     |    0.534 | 0.494,0.573 |
+| Richmond,VA       |    0.263 | 0.223,0.308 |
+| Sacramento,CA     |    0.370 | 0.321,0.421 |
+| San Antonio,TX    |    0.429 | 0.395,0.463 |
+| San Bernardino,CA |    0.618 | 0.558,0.675 |
+| San Diego,CA      |    0.380 | 0.335,0.426 |
+| San Francisco,CA  |    0.507 | 0.468,0.545 |
+| Savannah,GA       |    0.467 | 0.404,0.532 |
+| St. Louis,MO      |    0.540 | 0.515,0.564 |
+| Stockton,CA       |    0.599 | 0.552,0.645 |
+| Tampa,FL          |    0.457 | 0.388,0.527 |
+| Tulsa,AL          |    0.000 | 0,0.945     |
+| Tulsa,OK          |    0.331 | 0.293,0.371 |
+| Washington,DC     |    0.438 | 0.411,0.465 |
 
 **Tulsa,AL only has one case so the estimate might not be correct.**
 
